@@ -1,0 +1,48 @@
+name:           snaplet-smtp
+version:        0.1
+synopsis:       Send emails from your Snap application
+license:        MPL-2.0
+license-file:   LICENSE
+author:         Shane O'Brien
+maintainer:     shane@duairc.com
+stability:      Experimental
+category:       Web
+cabal-version:  >= 1.6
+build-type:     Simple
+homepage:       https://github.com/duairc/snaplet-smtp
+bug-reports:    https://github.com/duairc/snaplet-smtp/issues
+
+data-files:
+  config/devel.cfg
+
+extra-source-files:
+  LICENSE
+
+library
+
+  hs-source-dirs:
+    src
+
+  exposed-modules:
+    Snap.Snaplet.SMTP
+
+  other-modules:
+    Paths_snaplet_smtp
+
+  build-depends:
+    base,
+    bytestring,
+    configurator,
+    filepath,
+    mime-mail,
+    mtl,
+    network,
+    resource-pool,
+    smtp-mail,
+    snap
+
+  ghc-options: -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/duairc/snaplet-smtp.git
