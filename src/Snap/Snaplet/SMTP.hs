@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snap.Snaplet.SMTP
@@ -8,15 +9,11 @@ module Snap.Snaplet.SMTP
 where
 
 -- base ----------------------------------------------------------------------
-import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Word (Word16)
 import           Data.Typeable (Typeable)
 import           GHC.Generics (Generic)
 import           Prelude hiding (lookup)
-
-
--- bytestring ----------------------------------------------------------------
-import           Data.ByteString (ByteString)
 
 
 -- configurator --------------------------------------------------------------
@@ -33,7 +30,7 @@ import           Network.Mail.Mime (Mail)
 
 
 -- mtl -----------------------------------------------------------------------
-import           Control.Monad.Reader.Class (ask)
+import           Control.Monad.Reader.Class (MonadReader, ask)
 
 
 -- network -------------------------------------------------------------------
@@ -49,9 +46,7 @@ import qualified Network.Mail.SMTP as M
 
 
 -- snap ----------------------------------------------------------------------
-import           Snap.Snaplet
-                     ( Handler, SnapletInit, makeSnaplet, getSnapletUserConfig
-                     )
+import           Snap.Snaplet (SnapletInit, makeSnaplet, getSnapletUserConfig)
 
 
 -- snaplet-smtp --------------------------------------------------------------
@@ -97,7 +92,7 @@ loadSMTP config = SMTP <$> createPool connect M.closeSMTP 1 60 20
         connection <- M.connectSMTP' hostname port
         case (musername, mpassword) of
             (Just username, Just password) -> do
-                M.login connection username password
+                _ <- M.login connection username password
                 pure connection
             _ -> pure connection
 
@@ -109,7 +104,7 @@ initSMTP = makeSnaplet "smtp" "SMTP mail sender snaplet" configDir $
 
 
 ------------------------------------------------------------------------------
-mail :: Mail -> Handler b SMTP ()
+mail :: (MonadReader SMTP m, MonadIO m) => Mail -> m ()
 mail message = do
     SMTP pool <- ask
     liftIO $ withResource pool (flip M.renderAndSend message)
